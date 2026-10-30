@@ -1,0 +1,36 @@
+name: iOS build and tests
+"on": [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test Samsung protocol and validation
+        run: swift test
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        run: xcodegen generate
+      - name: Build iOS simulator app
+        run: xcodebuild -project SwitkoboRemote.xcodeproj -scheme SwitkoboRemote -destination 'generic/platform=iOS Simulator' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
+      - name: Choose available iPhone simulator
+        run: |
+          DEVICE=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(x["udid"] for group in d["devices"].values() for x in group if x["name"].startswith("iPhone")))')
+          echo "SIMULATOR_ID=$DEVICE" >> "$GITHUB_ENV"
+      - name: Run native UI smoke tests
+        run: xcodebuild -project SwitkoboRemote.xcodeproj -scheme SwitkoboRemote -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO test
+      - name: Build unsigned iPhone app
+        run: xcodebuild -project SwitkoboRemote.xcodeproj -scheme SwitkoboRemote -configuration Release -destination 'generic/platform=iOS' -derivedDataPath DeviceBuild CODE_SIGNING_ALLOWED=NO build
+      - name: Package for personal signing on Windows
+        run: |
+          mkdir -p Payload
+          cp -R DeviceBuild/Build/Products/Release-iphoneos/SwitkoboRemote.app Payload/
+          ditto -c -k --keepParent Payload SwitkoboRemote-unsigned.ipa
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SwitkoboRemote-unsigned
+          path: SwitkoboRemote-unsigned.ipa
+          retention-days: 7

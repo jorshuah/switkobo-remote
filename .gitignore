@@ -1,0 +1,13 @@
+.build/
+.DS_Store
+DerivedData/
+DeviceBuild/
+Payload/
+deliverables/
+*.xcuserstate
+xcuserdata/
+*.ipa
+*.xcarchive
+__pycache__/
+.tools/
+
