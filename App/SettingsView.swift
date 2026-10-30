@@ -28,11 +28,12 @@ struct SettingsView: View {
             }
             Section("Preferences") {
                 Toggle("Button haptics", isOn: Binding(get: { store.library.haptics }, set: { store.preferences(haptics: $0) }))
-                Picker("Appearance", selection: Binding(get: { store.library.appearance }, set: { store.preferences(appearance: $0) })) {
-                    Text("Follow iPhone").tag(Appearance.system)
-                    Text("Light").tag(Appearance.light)
-                    Text("Dark").tag(Appearance.dark)
-                }
+                NavigationLink { AppearanceSettingsView() } label: {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Appearance")
+                        Text(store.library.appearance.title).font(.callout).foregroundStyle(.secondary)
+                    }.fixedSize(horizontal: false, vertical: true).frame(minHeight: 48)
+                }.accessibilityIdentifier("appearance-settings")
                 Text("Preferences save immediately on this iPhone.").font(.footnote).foregroundStyle(.secondary)
             }
             Section("Connection help") {
@@ -74,6 +75,19 @@ struct SettingsView: View {
                 }
                 Button("Cancel", role: .cancel) { removing = nil }
             } message: { Text("Its saved address, shortcuts, and pairing credentials will be removed.") }
+    }
+}
+
+private struct AppearanceSettingsView: View {
+    @EnvironmentObject private var store: LibraryStore
+    var body: some View {
+        Form {
+            Picker("Appearance", selection: Binding(get: { store.library.appearance }, set: { store.preferences(appearance: $0) })) {
+                ForEach(Appearance.allCases, id: \.self) { appearance in
+                    Text(appearance.title).fixedSize(horizontal: false, vertical: true).tag(appearance)
+                }
+            }.pickerStyle(.inline).labelsHidden()
+        }.navigationTitle("Appearance").navigationBarTitleDisplayMode(.inline)
     }
 }
 

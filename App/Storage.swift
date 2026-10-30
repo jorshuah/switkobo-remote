@@ -3,7 +3,16 @@ import Combine
 import Security
 import RemoteCore
 
-enum Appearance: String, Codable, CaseIterable { case system, light, dark }
+enum Appearance: String, Codable, CaseIterable {
+    case system, light, dark
+    var title: String {
+        switch self {
+        case .system: return "Follow iPhone"
+        case .light: return "Light"
+        case .dark: return "Dark"
+        }
+    }
+}
 
 struct RemoteLibrary: Codable {
     var version = 1
