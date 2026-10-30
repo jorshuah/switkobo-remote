@@ -28,7 +28,9 @@ final class RemoteUITests: XCTestCase {
         for _ in 0..<3 where !appearance.isHittable { app.swipeUp() }
         XCTAssertTrue(appearance.isHittable)
         appearance.tap()
-        XCTAssertTrue(app.staticTexts["Dark"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["Dark"].waitForExistence(timeout: 3))
+        app.buttons["Dark"].tap()
+        XCTAssertTrue(app.buttons["Dark"].isSelected)
         capture(app, name: "Appearance choices with accessibility text")
     }
     func testSavedTVControlsStayDisabledUntilAuthorized() {
