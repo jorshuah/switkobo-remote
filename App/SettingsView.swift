@@ -48,6 +48,10 @@ struct SettingsView: View {
                 Text("No ads, subscription, account, or home computer. TV commands travel directly over your local network. Pairing credentials are stored in this iPhone’s Keychain.")
                 Text("Dictation uses on-device speech recognition when available. The app does not record audio to files or upload it to a speech service.")
                 Text("Samsung Q65B is the first testing target. Keyboard entry, app launching, discovery, and standby wake depend on the TV and its apps. Touchpad gestures navigate focus; they do not provide a mouse pointer.")
+                if let source = URL(string: "https://github.com/jorshuah/switkobo-remote") {
+                    Link("View source code", destination: source).frame(minHeight: 48)
+                }
+                NavigationLink("Open-source license") { LicenseView() }.frame(minHeight: 48)
             }.font(.callout)
             if let message { Section { Text(message) } }
         }.navigationTitle("Settings")
@@ -70,6 +74,20 @@ struct SettingsView: View {
                 }
                 Button("Cancel", role: .cancel) { removing = nil }
             } message: { Text("Its saved address, shortcuts, and pairing credentials will be removed.") }
+    }
+}
+
+private struct LicenseView: View {
+    private var notice: String {
+        guard let url = Bundle.main.url(forResource: "LICENSE", withExtension: nil),
+              let text = try? String(contentsOf: url, encoding: .utf8) else {
+            return "Switkobo Remote is available under the MIT license. View the full license in the source repository."
+        }
+        return text
+    }
+    var body: some View {
+        ScrollView { Text(notice).font(.body).textSelection(.enabled).padding(24).frame(maxWidth: 640) }
+            .navigationTitle("MIT license").navigationBarTitleDisplayMode(.inline)
     }
 }
 

@@ -25,6 +25,10 @@ final class LibraryStore: ObservableObject {
 #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--ui-testing") {
             file = FileManager.default.temporaryDirectory.appending(path: "remote-ui-test-\(UUID().uuidString).json")
+            if ProcessInfo.processInfo.arguments.contains("--saved-tv") {
+                let fixture = TVProfile(name: "Samsung Q65B", address: "192.168.1.25")
+                library.profiles = [fixture]; library.selectedID = fixture.id
+            }
             return
         }
 #endif

@@ -72,6 +72,7 @@ final class SamsungConnection: ObservableObject {
     private var sendTail: Task<Bool, Never>?
     private var generation = UUID()
     private var pending = 0
+    private var powerOffRequested = false
     private var activeProfile: TVProfile?
     private var wakeConnection: NWConnection?
     private var wakeDeadline: Task<Void, Never>?
@@ -115,6 +116,11 @@ final class SamsungConnection: ObservableObject {
                     }
                 } catch {
                     guard let self, self.generation == current, !Task.isCancelled else { return }
+                    if self.powerOffRequested {
+                        self.disconnect()
+                        self.notice = "The TV connection closed after the power-off request. Check the TV before reconnecting."
+                        return
+                    }
                     let message = trust.certificateChanged
                         ? "This TV’s certificate changed. Check the TV address. If you replaced or reset the TV, forget its saved pairing in Settings and pair again."
                         : "Could not reach the TV. Check that it is on, both devices share the same Wi-Fi network, and Local Network access is enabled for this app in iPhone Settings."
@@ -181,7 +187,7 @@ final class SamsungConnection: ObservableObject {
         socket?.cancel(with: .goingAway, reason: nil); socket = nil
         session?.invalidateAndCancel(); session = nil; delegate = nil
         wakeConnection?.cancel(); wakeConnection = nil; wakeDeadline?.cancel(); wakeDeadline = nil; waking = false
-        pending = 0; keyboardActive = false; loadingApps = false; state = .disconnected
+        pending = 0; powerOffRequested = false; keyboardActive = false; loadingApps = false; state = .disconnected
     }
     private func fail(_ message: String) { disconnect(); state = .failed(message) }
 
@@ -215,7 +221,19 @@ final class SamsungConnection: ObservableObject {
         return await task.value
     }
     func key(_ key: RemoteKey) async {
-        do { _ = await send([try SamsungProtocol.key(key)]) }
+        let current = generation
+        if key == .powerOff { powerOffRequested = true }
+        do {
+            let sent = await send([try SamsungProtocol.key(key)])
+            guard generation == current else { return }
+            if key == .powerOff {
+                powerOffRequested = false
+                if sent {
+                    disconnect()
+                    notice = "Power-off request sent. Use Wake TV or the physical remote to turn the TV back on."
+                }
+            }
+        }
         catch { notice = error.localizedDescription }
     }
     func sendDraft() async -> Bool {

@@ -37,6 +37,7 @@ struct KeyboardSheet: View {
                     if speech.starting { ProgressView("Preparing microphone") }
                     if let error = speech.error { Text(error).font(.callout) }
                     Button {
+                        guard !sending else { return }
                         sending = true; speech.stop(); focused = false
                         Task { _ = await tv.sendDraft(); sending = false }
                     } label: {
@@ -148,6 +149,7 @@ struct AppsSheet: View {
                 }
                 if let notice = tv.notice { Section { Text(notice).font(.callout) } }
                 if !tv.isConnected { Section { Text("Reconnect from the remote screen to launch apps.") } }
+                if let error = store.error { Section { Text(error).foregroundStyle(.red) } }
             }.navigationTitle("TV apps").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
         }

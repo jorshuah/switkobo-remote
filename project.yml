@@ -22,6 +22,8 @@ targets:
       - path: App
         excludes:
           - Info.plist
+      - path: LICENSE
+        buildPhase: resources
     info:
       path: App/Info.plist
       properties:
