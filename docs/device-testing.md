@@ -1,6 +1,6 @@
 # Device verification still required
 
-No iOS binary or real Q65B connection has been tested in this Windows workspace. Run the cloud macOS workflow first and fix any compiler/test failures before installation. Native interaction and visual checks below are release gates, not completed checks.
+The cloud macOS workflow has built simulator and unsigned device binaries and passed core/UI smoke tests. Initial connection, offline controls, and large-text settings screenshots were reviewed on an iPhone 16 Pro simulator. No real iPhone-to-Q65B connection has been tested. The broader checks below remain release gates; simulator coverage does not establish hardware compatibility. See [verification.md](verification.md) for build evidence.
 
 ## Pairing and recovery
 

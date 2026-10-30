@@ -2,7 +2,7 @@
 
 An open-source native iPhone/iPad remote designed to connect directly to a Samsung Q65B over the home network. No runtime computer, cloud relay, account, ads, analytics, purchases, or subscription is implemented.
 
-**Status: source implementation awaiting an Apple-platform build and testing on the actual TV. This repository is not yet a verified working iPhone release.** The development workspace is Windows; it cannot compile or run SwiftUI. The initial target is iOS/iPadOS 17+. Android, Windows, and Mac clients are not implemented in this iteration.
+**Status: preview with successful native builds and simulator smoke tests; actual Samsung Q65B compatibility is still unverified.** The Windows development workspace uses GitHub-hosted macOS for compilation and simulator tests. The initial target is iOS/iPadOS 17+. Android, Windows, and Mac clients are not implemented in this iteration.
 
 ## Included behavior
 
@@ -19,7 +19,7 @@ The touchpad sends directional navigation commands; it does not claim mouse-poin
 
 ## Build without owning a Mac
 
-The repository includes `.github/workflows/ios.yml` for a GitHub-hosted macOS runner. It tests the Swift core, generates the Xcode project, builds the simulator app, runs UI smoke tests, and then packages an **unsigned** iPhone IPA. No Apple signing secrets are needed for that workflow. The source is uploaded to [jorshuah/switkobo-remote](https://github.com/jorshuah/switkobo-remote). The [first build attempt](https://github.com/jorshuah/switkobo-remote/actions/runs/41142981977) was blocked before any steps ran by an account billing/spending restriction; it produced no IPA.
+The repository includes `.github/workflows/ios.yml` for a GitHub-hosted macOS runner. It tests the Swift core, generates the Xcode project, builds the simulator app, runs UI smoke tests, and then packages an **unsigned** iPhone IPA. No Apple signing secrets are needed for that workflow. The source is uploaded to [jorshuah/switkobo-remote](https://github.com/jorshuah/switkobo-remote). The public repository uses a standard macOS runner. Native builds, six core tests, and three UI smoke tests have passed, and an unsigned IPA has been produced. See the [verification record](docs/verification.md) for build evidence and remaining hardware checks.
 
 1. Put the source in a GitHub repository you control, preserving `.github/workflows/ios.yml`.
 2. Run **iOS build and tests** in the repository's Actions tab. Check your GitHub Actions allowance before enabling hosted builds.
@@ -54,7 +54,7 @@ First-use TLS trust is limited to the selected literal local address and port. T
 
 ## Verification
 
-`Tests/RemoteCoreTests` covers address restrictions, token URL encoding, Unicode input, authorization parsing, malformed app lists, and Wake-on-LAN packet structure. `Tests/UITests` covers the initial unpaired state and settings access. These are intended to run on the macOS build runner, not claimed as executed on Windows.
+`Tests/RemoteCoreTests` covers address restrictions, token URL encoding, Unicode input, authorization parsing, malformed app lists, and Wake-on-LAN packet structure. `Tests/UITests` covers the initial unpaired state, connection form, settings access at accessibility text sizes, and disabled controls before TV authorization. Six core tests and three UI tests passed on the macOS runner. Simulator screenshots were inspected; they do not demonstrate a live TV connection.
 
 Windows source checks:
 

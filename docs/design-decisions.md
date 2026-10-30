@@ -14,7 +14,7 @@ The mobile-design checkpoint used the iOS platform, design-thinking, touch-psych
 | [Smart TV Input Methods, Samsung Developer](https://developer.samsung.com/smarttv/design/input-methods.html) | Directional navigation, Select, and Back remain accessible foundations | Assuming every app supports remote typing or a mouse |
 | [Beoremote One, Bang & Olufsen](https://www.bang-olufsen.com/en/int/accessories/beoremote-one) | Quiet tone and grouping by everyday use | Hardware silhouette, branding, or small physical-button density |
 
-The reference board links the publishers' own images for design discussion only. The browser tool blocked local-file preview, so the board and native implementation have not had a rendered visual inspection. Screenshots were not fabricated. The board was shared before implementation; no design approval gate was requested.
+The reference board links the publishers' own images for design discussion only. The browser tool blocked local-file preview of the board. Native simulator screenshots were later exported from XCTest and visually inspected for first connection, the connection form, offline controls, and large-text settings; see verification.md. Screenshots were not fabricated. The board was shared before implementation; no design approval gate was requested.
 
 ## Composition and interaction
 
