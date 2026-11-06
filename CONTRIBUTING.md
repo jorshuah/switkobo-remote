@@ -1,18 +1,23 @@
-# Contributing to Switkobo Remote
+# Contributing to TV Remote
 
-This project aims to provide a dependable TV remote without advertisements, subscriptions, cloud accounts, or a computer required during use. The first implementation targets iPhone/iPad and Samsung Tizen TVs, with the Q65B as the first requested hardware target.
+The project is a local web remote with a Windows helper for Samsung TVs. The browser UI lives in `web/public/`. The Node.js helper, protocol, and playback modules live in `web/`. Keep TV control usable without an account, ads, or a subscription.
 
-Before changing behavior, read the README, the design decisions, and the device test plan. Open an issue for a new TV protocol or major workflow change so its scope and device-testing approach are clear.
+From the repository root, run the following commands with Node.js 22 or newer.
 
-For a pull request:
+```sh
+cd web
+npm ci
+npx playwright install chromium webkit
+npm test
+npm run test:ui
+```
 
-- Keep protocol behavior in `Sources/RemoteCore` and native networking/UI in `App`.
-- Add focused tests for protocol, validation, connection, or lifecycle changes. On a Mac run `swift test`, then generate and build the Xcode project. The GitHub workflow runs native smoke tests and packages an unsigned device build.
-- Describe what was actually tested, with TV model, firmware, and iOS version where relevant. Mark untested device features explicitly.
-- Include screenshots for UI changes at a small phone size and with large text. Support VoiceOver and retain button alternatives to gestures.
-- Do not log pairing tokens, dictated text, passwords, or other personal information. Remove tokens and local addresses from public logs and issue attachments.
-- Do not add advertising, analytics, paid feature gates, or cloud dependencies to the core remote flow.
+The tests use simulated TVs and temporary data. The GitHub workflow runs these checks on Linux. Browser tests cover desktop Chromium and simulated iPhone and Android layouts.
 
-Hardware reports are welcome even without a code change. Include the model, software versions, action attempted, expected result, actual result, and whether other controls work. Never post your Apple credentials or a raw pairing URL.
+If you change the app shell or its offline assets, run `node scripts/pwa-assets.mjs` from `web/` and include the updated build marker and service worker. Use `npm run build:pwa` when changing the app icon exports as well.
 
-Contributions are provided under the project's MIT license. Third-party reference images linked in the design board retain their original owners' rights and are not part of the app's asset license.
+In a pull request, describe the user-visible change and the checks you ran. For UI changes, include a narrow-screen screenshot using test data. Preserve keyboard access and alternatives to gestures.
+
+Hardware reports are welcome. Include the TV model and firmware, phone and browser, action attempted, and what happened. Remove private QR codes, access links, local IP addresses, source URLs with credentials, and API keys from attachments and logs.
+
+Contributions use the [MIT license](LICENSE). Bundled third-party assets and dependencies retain their [own notices](web/THIRD_PARTY.md).

@@ -1,0 +1,9 @@
+:root{font:17px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:light dark}
+body{margin:0}
+main{max-width:440px;margin:auto;padding:calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom))}
+h1{font-size:1.6rem;line-height:1.2;margin:0 0 16px}
+p{margin:0 0 20px}
+label{display:block;margin:24px 0 8px;font-weight:600}
+input,textarea{box-sizing:border-box;display:block;width:100%;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:12px;-webkit-user-select:text;user-select:text}
+#keyboard-check-status{margin-top:20px}
+a{display:inline-block;padding:12px 0;text-underline-offset:4px}

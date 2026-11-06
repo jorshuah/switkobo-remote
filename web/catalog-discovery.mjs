@@ -1,0 +1,21 @@
+import {catalogItems,metadataItems} from './catalog.mjs';import {RemoteError} from './protocol.mjs';
+export function recommend(items,history){const watched=new Set(),weights=new Map();let basis=0;for(const entry of history.slice().sort((a,b)=>b.updatedAt-a.updatedAt)){const m=entry.media,k=m.type+':'+m.id;if(watched.has(k))continue;watched.add(k);if(entry.position<30&&!entry.completed)continue;if(m.genres?.length){basis++;for(const g of m.genres)weights.set(g,(weights.get(g)||0)+1/(1+basis*.15));}}return {basis,items:items.filter(i=>!watched.has(i.type+':'+i.id)).map((item,index)=>({item,index,score:(item.genres||[]).reduce((n,g)=>n+(weights.get(g)||0),0)})).filter(r=>r.score>0).sort((a,b)=>b.score-a.score||a.index-b.index).slice(0,8).map(r=>r.item)};}
+export async function discoverCatalog(c,{source='aether',type='all',history=[]}={}){
+ if(!['cinejoy','movy','aether'].includes(source)||!['all','movie','tv'].includes(type))throw new RemoteError('Choose a supported discovery source and title type.');
+ c.discovery??=new Map();const key=source+':'+type;let cached=c.discovery.get(key);
+ if(!cached||cached.expires<Date.now())cached=await c.run(async()=>{
+  const p=await c.session(source),metadata=new Map(),observed=new Map();
+  const response=async r=>{try{const u=new URL(r.url());if(!r.ok()||!['api.themoviedb.org','db.wecollege.net'].includes(u.hostname)||Number(r.headers()['content-length'])>2000000)return;const data=await r.json();if(!Array.isArray(data.results))return;const guessed=/\/(tv)(?:\/|$)/.test(u.pathname)?'tv':/\/(movie)(?:\/|$)/.test(u.pathname)?'movie':null;for(const i of metadataItems(data.results.map(i=>({...i,media_type:i.media_type||guessed})),source,type))metadata.set(i.key,i);}catch{}};
+  p.on('response',response);
+  const collect=async(wanted=type)=>{await p.locator(source==='aether'?(wanted==='tv'?'a[href*="/media/tmdb-tv-"]':'a[href*="/media/tmdb-"]'):source==='movy'?(wanted==='tv'?'a[href*="/tv/"]':'a[href*="/movie/"],a[href*="/tv/"]'):(wanted==='tv'?'a[href*="/series/"]':'a[href*="/movie/"],a[href*="/series/"]')).first().waitFor({state:'attached',timeout:22000});await p.waitForTimeout(900);const links=await p.locator('a[href]').evaluateAll(as=>as.slice(0,600).map(a=>({url:a.href,text:a.innerText,poster:a.querySelector('img')?.src,alt:a.querySelector('img')?.alt})));for(const i of catalogItems(links,source))if(type==='all'||i.type===type)observed.set(i.key,i);};
+  try{await p.goto(source==='aether'?'https://aether.st/':source==='movy'?'https://www.movy.sx/'+(type==='all'?'':'browse/'+type):'https://cinejoy.pk/'+(type==='all'?'':type==='tv'?'series':'movies'),{waitUntil:'domcontentloaded',timeout:30000});p.catalogKey=null;
+   if(source==='aether'&&type==='tv')await p.getByRole('button',{name:'TV Shows',exact:true}).click();await collect();
+   if(source==='aether'&&type==='all'){await p.getByRole('button',{name:'TV Shows',exact:true}).click();await collect('tv');}
+   const items=[...observed.values()].map(i=>({...i,...metadata.get(i.key),page:i.page}));if(!items.length)throw new RemoteError('This source did not provide discovery titles. Try another source.',503);
+   for(const i of items){c.items.set(i.key,{...c.items.get(i.key),...i});}while(c.items.size>160)c.items.delete(c.items.keys().next().value);
+   const result={items,expires:Date.now()+600000};c.discovery.set(key,result);while(c.discovery.size>9)c.discovery.delete(c.discovery.keys().next().value);return result;
+  }finally{p.off('response',response);}
+ });
+ for(const i of cached.items)c.items.set(i.key,{...c.items.get(i.key),...i});while(c.items.size>160)c.items.delete(c.items.keys().next().value);
+ const suggested=recommend(cached.items,history),year=new Date().getFullYear(),initial=type==='all'?[...cached.items.filter(i=>i.type==='movie').slice(0,6),...cached.items.filter(i=>i.type==='tv').slice(0,6)]:cached.items,balanced=[...new Map([...initial,...cached.items].map(i=>[i.key,i])).values()].slice(0,12);return {source,type,popular:balanced.map(i=>c.publicItem(i)),recent:cached.items.filter(i=>Number(i.year)>=year-1&&Number(i.year)<=year).sort((a,b)=>(b.releaseDate||b.year).localeCompare(a.releaseDate||a.year)).slice(0,12).map(i=>c.publicItem(i)),recommended:suggested.items.map(i=>c.publicItem(i)),recommendationBasis:suggested.basis};
+}

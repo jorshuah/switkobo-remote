@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import {networkAddresses} from './server.mjs';
+const here=path.dirname(fileURLToPath(import.meta.url));
+const directory=process.env.SWITKOBO_DATA_DIR||path.join(process.env.LOCALAPPDATA||path.join(os.homedir(),'.local','share'),'SwitkoboRemote');
+if(process.platform!=='win32')throw new Error('The local HTTPS setup script currently supports Windows. Supply your own trusted TLS certificate on other systems.');
+const addresses=networkAddresses();
+if(!addresses.length)throw new Error('Connect this PC to home Wi-Fi before setting up HTTPS.');
+const powershell=process.env.SWITKOBO_POWERSHELL||'powershell.exe';
+const result=spawnSync(powershell,['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.join(here,'scripts','https.ps1'),'-DataDirectory',directory,'-Addresses',addresses.join(',')],{windowsHide:true,encoding:'utf8'});
+if(result.status!==0)throw new Error('Could not create local HTTPS certificates. '+(result.stderr||result.error?.message||'Check Windows PowerShell support.'));
+console.log(result.stdout.trim());
+console.log('Restart Start Remote to use HTTPS, then follow the phone certificate instructions on the PC connection page.');

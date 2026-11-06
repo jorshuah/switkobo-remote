@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+ <title>Keyboard check · TV Remote</title>
+ <link rel="stylesheet" href="/keyboard-check.css">
+ <script src="/keyboard-check.js" defer></script>
+</head>
+<body>
+ <main>
+  <h1>Keyboard check</h1>
+  <p id="keyboard-context">Checking app mode…</p>
+  <p>This page uses native fields without the remote’s modal, animations or focus handlers. Nothing you type here is saved or sent.</p>
+  <label for="native-keyboard-input">Tap to open the keyboard</label>
+  <input id="native-keyboard-input" type="text" inputmode="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Type a few letters">
+  <label for="native-keyboard-notes">You can also try this box</label>
+  <textarea id="native-keyboard-notes" rows="3" inputmode="text" autocomplete="off" spellcheck="false"></textarea>
+  <p id="keyboard-check-status" role="status">Waiting for a field tap</p>
+  <p>If neither field opens the keyboard here, try restarting the iPhone once, then reopen the Home Screen app. The PC’s movie playback keeps running.</p>
+  <a href="/">Back to TV Remote</a>
+ </main>
+</body>
+</html>

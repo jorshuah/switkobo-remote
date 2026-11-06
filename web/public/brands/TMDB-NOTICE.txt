@@ -1,0 +1,1 @@
+TMDB logo: unmodified asset from https://files.readme.io/29c6fee-blue_short.svg, linked by the official TMDB developer documentation at https://developer.themoviedb.org/docs/faq. TMDB branding remains the property of its respective owners; it is not part of this project’s original MIT-licensed artwork. Attribution guidance: https://www.themoviedb.org/about/logos-attribution.

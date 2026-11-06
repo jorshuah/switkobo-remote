@@ -12,3 +12,10 @@ __pycache__/
 .tools/
 TestResults.xcresult/
 Screenshots/
+node_modules/
+web/.data/
+web/test-results/
+web/playwright-report/
+.env
+.env.*
+!.env.example

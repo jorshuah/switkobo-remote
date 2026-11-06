@@ -1,0 +1,13 @@
+// Bounded, allowlisted telemetry. No URLs, tokens, stderr, paths or cue text.
+const sourcePhases=new Set(['browser','navigation','source-discovery','initial-buffer','source-subtitles','source-open']);
+const events=new Set(['converter-failed','converter-timeout','converter-unavailable','converter-exit','invalid-media','invalid-timestamps','subtitle-converter-failed','converter-memory','source-http-failed','source-read-failed','source-pipe-failed','source-timeout','source-retry','media-head','media-get-warm','media-get-cold','media-rejected-range','media-rejected-limit','media-stale-request','media-disconnected','media-complete','media-pipe-failed','receiver-error','playback-error']);
+const transitionPhases=new Set(['bufferMs','converterMs','handoffMs','confirmedMs']);
+export class PlaybackTrace{
+ constructor({now=()=>performance.now()}={}){this.now=now;this.started=now();this.source={};this.transitions=[];this.events=[];this.fetches={count:0,bytes:0,totalMs:0,maxMs:0,retries:0,failures:0,lastStatus:null};}
+ sourcePhase({phase,ms}={}){if(sourcePhases.has(phase)&&Number.isFinite(ms)&&ms>=0)this.source[phase]=Math.round(ms);}
+ begin(kind){if(!['start','seek','subtitle','quality'].includes(kind))return;const row={kind,atMs:Math.round(this.now()-this.started)};this.transitions.push(row);if(this.transitions.length>8)this.transitions.shift();return row;}
+ phase(row,name,ms){if(row&&transitionPhases.has(name)&&Number.isFinite(ms)&&ms>=0)row[name]=Math.round(ms);}
+ event({event,code,status,kind,responseStatus,bytesRead,expectedBytes}={}){if(!events.has(event))return;const row={event,atMs:Math.round(this.now()-this.started)};if(Number.isInteger(code))row.code=code;if(Number.isInteger(status)&&status>=100&&status<=599)row.status=status;if(event==='source-read-failed'){if(['timeout','too-large','http','network','frame-closed'].includes(kind))row.kind=kind;if(Number.isInteger(responseStatus)&&responseStatus>=100&&responseStatus<=599)row.responseStatus=responseStatus;for(const [key,value]of Object.entries({bytesRead,expectedBytes}))if(Number.isInteger(value)&&value>=0&&value<=64000000)row[key]=value;}this.events.push(row);if(this.events.length>48)this.events.shift();}
+ fetched({ms,bytes=0,status,retry=false,failed=false}={}){if(retry){this.fetches.retries++;return;}if(!Number.isFinite(ms)||ms<0)return;const f=this.fetches;f.count++;f.totalMs+=Math.round(ms);f.maxMs=Math.max(f.maxMs,Math.round(ms));f.bytes+=Number.isFinite(bytes)&&bytes>0?bytes:0;if(failed){f.failures++;f.lastStatus=Number.isInteger(status)&&status>=100&&status<=599?status:null;}}
+ snapshot(){return {source:{...this.source},fetches:{...this.fetches},transitions:this.transitions.map(t=>({...t})),events:this.events.map(e=>({...e}))};}
+}

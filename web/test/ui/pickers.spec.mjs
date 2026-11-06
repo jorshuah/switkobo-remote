@@ -1,0 +1,25 @@
+import {test,expect} from '@playwright/test';import {choose} from './picker-helpers.mjs';
+test.use({serviceWorkers:'block'});
+test.beforeEach(async({page,request})=>{await request.get('/__test/reset');await page.goto('/#access='+'a'.repeat(64));await expect(page.locator('#connection-label')).toHaveText('Connected on your network');await page.locator('#play-on-tv').click();});
+test('source picker is app-drawn, updates the actual source, and closes before restoring focus',async({page})=>{
+ const picker=page.getByRole('combobox',{name:'Search in',exact:true});await expect(picker).toHaveText('Cinejoy');await expect(page.locator('#catalog-source')).toBeHidden();await picker.click();const list=page.getByRole('listbox',{name:'Search in',exact:true});await expect(list).toBeVisible();await expect(list.getByRole('option',{selected:true})).toHaveText('Cinejoy');await list.getByRole('option',{name:'Aether',exact:true}).click();await expect(page.locator('#catalog-source')).toHaveValue('aether');await expect(page.getByRole('combobox',{name:'Search in',exact:true})).toHaveText('Aether');await expect(page.getByRole('listbox')).toHaveCount(0);await expect(page.getByRole('combobox',{name:'Search in',exact:true})).toBeFocused();
+});
+test('keyboard arrows, type-to-find, Escape and Enter keep selection and modal dismissal separate',async({page})=>{
+ const picker=page.getByRole('combobox',{name:'Search in',exact:true});await picker.focus();await page.keyboard.press('ArrowDown');await page.keyboard.press('End');await page.keyboard.press('Escape');await expect(page.locator('#sheet')).toBeVisible();await expect(page.locator('#catalog-source')).toHaveValue('cinejoy');await expect(picker).toBeFocused();
+ await page.keyboard.press('m');await page.keyboard.press('Enter');await expect(page.locator('#catalog-source')).toHaveValue('movy');await page.keyboard.press('Escape');await expect(page.locator('#sheet')).not.toBeVisible();
+});
+test('a choice list stays inside a narrow viewport and does not block other controls after dismissal',async({page})=>{
+ await page.setViewportSize({width:320,height:640});await page.getByRole('combobox',{name:'Show',exact:true}).click();const list=page.getByRole('listbox');const box=await list.boundingBox();expect(box.x).toBeGreaterThanOrEqual(0);expect(box.y).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(320);expect(box.y+box.height).toBeLessThanOrEqual(640);await page.locator('#sheet-title').click();await expect(list).toHaveCount(0);await page.locator('#catalog-paste').click();await expect(page.locator('#movie-link')).toBeVisible();await choose(page,'Video quality','720');await expect(page.locator('#movie-quality')).toHaveValue('720');
+});
+test('custom clear resets the query without a TV command and retains the normal text keyboard control',async({page,request})=>{
+ const input=page.getByLabel('Title',{exact:true});await input.fill('Interstellar');await page.locator('#movie-search-clear').click();await expect(page.getByLabel('Title',{exact:true})).toHaveValue('');await expect(page.getByLabel('Title',{exact:true})).toBeFocused();await expect(page.locator('#movie-search-clear')).toBeHidden();expect(await(await request.get('/__test/commands')).json()).toEqual([]);
+});
+
+test('search focus has no outer ring for touch or keyboard input',async({page})=>{
+ const input=page.getByLabel('Title',{exact:true});await input.focus();await expect(input).toBeFocused();await expect(input).toHaveCSS('outline-style','none');await expect(input).toHaveCSS('box-shadow','none');await page.evaluate(()=>document.documentElement.dataset.inputModality='pointer');await input.click();await expect(input).toHaveCSS('outline-style','none');await expect(input).toHaveCSS('box-shadow','none');
+});
+
+test('long lists scroll to the keyboard choice, skip disabled options, and update real form data once',async({page})=>{
+ await page.evaluate(()=>{const form=document.createElement('form');form.id='picker-test-form';const label=document.createElement('label');label.htmlFor='long-choice';label.textContent='Long choice';const select=document.createElement('select');select.id='long-choice';select.name='episode';for(let i=1;i<=200;i++){const o=document.createElement('option');o.value=String(i);o.textContent='Episode '+i;o.disabled=i===200;select.append(o);}select.onchange=()=>document.body.dataset.pickerChanges=String(Number(document.body.dataset.pickerChanges||0)+1);form.append(label,select);document.querySelector('#sheet-body').append(form);});
+ const picker=page.getByRole('combobox',{name:'Long choice',exact:true});await picker.focus();await page.keyboard.press('End');await expect(page.getByRole('listbox')).toBeVisible();expect(await page.getByRole('listbox').evaluate(e=>e.scrollTop)).toBeGreaterThan(0);await page.keyboard.press('Enter');await expect(page.locator('#long-choice')).toHaveValue('199');expect(await page.evaluate(()=>new FormData(document.querySelector('#picker-test-form')).get('episode'))).toBe('199');expect(await page.locator('body').getAttribute('data-picker-changes')).toBe('1');
+});

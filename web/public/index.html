@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#121212">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="TV Remote">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="TV Remote">
+<meta name="app-build" content="240224fed04e">
+<title>TV Remote</title>
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="/app-icons/tv-remote-apple-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/app-icons/tv-remote-favicon-32.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/style.css">
+<script src="/pickers.js" defer></script>
+<script src="/app.js" defer></script>
+<script src="/stick.js" type="module"></script>
+<script src="/volume.js" type="module"></script>
+<script src="/cast.js" defer></script>
+<script src="/movies.js" defer></script>
+<script src="/library.js" defer></script>
+<script src="/subtitles.js" defer></script>
+<script src="/pwa.js" defer></script>
+<script src="/updates.js" defer></script>
+<script src="/notifications.js" defer></script>
+</head>
+<body>
+<main class="shell">
+<header class="topbar"><button id="back-settings" class="icon-button" aria-label="Back to remote" hidden><img src="/icons/arrow-left.svg" alt=""></button><h1 id="page-title">TV Remote</h1><button id="settings-button" class="icon-button" aria-label="Remote settings"><img src="/icons/settings.svg" alt=""></button></header>
+<div id="notice" class="notice" role="status" hidden><p id="notice-text"></p><button id="dismiss-notice" class="icon-button" aria-label="Dismiss message"><img src="/icons/x.svg" alt=""></button></div>
+<section id="access-screen" hidden>
+  <div class="connect-main">
+    <div class="connect-heading"><h2>Connect your remote</h2><p>Open Start Remote on your PC, then copy its private link.</p></div>
+    <form id="access-form">
+      <label for="access-input">Private link</label>
+      <input id="access-input" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" required placeholder="Paste your connection link">
+      <button id="open-remote" class="primary wide" type="submit">Connect</button>
+    </form>
+    <div class="connect-options">
+      <button id="scan-connection"><img src="/icons/scan-qr-code.svg" alt=""><span>Use a QR photo</span><img src="/icons/chevron-right.svg" alt=""></button>
+      <button id="connection-link-help"><img src="/icons/external-link.svg" alt=""><span>Find my private link</span><img src="/icons/chevron-right.svg" alt=""></button>
+    </div>
+  </div>
+  <p class="connect-footnote">Same home Wi-Fi. Keep your PC awake.</p>
+</section>
+<section id="remote-screen" hidden>
+  <div id="welcome" class="welcome" hidden><img class="welcome-icon" src="/icon.svg" alt=""><h2>Connect your Samsung TV</h2><p>Control your Samsung TV from this browser, through your Windows PC.</p><button id="first-connect" class="primary wide">Connect a TV</button><p class="help">Keep your PC and TV on the same network. You’ll approve the first connection on your TV.</p></div>
+  <div id="configured" hidden>
+    <div class="device-header">
+      <button id="power" class="icon-button power" aria-label="Turn off TV" disabled><img src="/icons/power.svg" alt=""></button>
+      <div class="device-copy"><button id="edit-tv" class="device-name"><span id="tv-name">Samsung Q65B</span><img src="/icons/chevron-down.svg" alt=""></button><p class="connection"><img id="status-icon" src="/icons/wifi-off.svg" alt=""><span id="connection-label">Not connected</span></p></div>
+      <button id="header-settings" class="icon-button header-settings" aria-label="Remote settings"><img src="/icons/settings.svg" alt=""></button>
+    </div>
+    <div class="remote-scroll" tabindex="0" role="region" aria-label="Remote controls">
+      <div class="secondary-controls">
+        <fieldset class="row four requires-tv" disabled aria-label="TV options">
+          <button class="key" data-key="MENU">Menu</button>
+          <button class="key" data-key="SOURCE" aria-label="Inputs">Input</button>
+          <button class="key" data-key="EXIT">Exit</button>
+          <button class="key" data-key="GUIDE">Guide</button>
+        </fieldset>
+        <div id="quick-apps" class="quick-apps" aria-label="App shortcuts"></div>
+        <button id="play-on-tv" class="cast-entry"><img src="/icons/tv.svg" alt=""><span><strong id="cast-entry-title">Play on TV</strong><small id="cast-entry-status">Find a movie to watch</small></span><img src="/icons/chevron-right.svg" alt=""></button>
+      </div>
+      <div class="controls">
+        <div class="primary-navigation">
+      <button class="icon-button mute key requires-tv" data-key="MUTE" aria-label="Mute" disabled><img src="/icons/volume-x.svg" alt=""></button>
+        <div class="segmented" role="group" aria-label="Navigation mode"><button id="mode-buttons" aria-label="Navigation stick" aria-pressed="true"><img src="/icons/joystick.svg" alt=""></button><button id="mode-touchpad" aria-label="Touchpad" aria-pressed="false"><img src="/icons/hand.svg" alt=""></button><button id="more" aria-label="More controls">123</button></div>
+          <fieldset class="rocker volume-rocker requires-tv" aria-label="Volume" disabled><button class="key" data-key="VOLUP" aria-label="Volume up"><img src="/icons/plus.svg" alt=""></button><span>VOL</span><button class="key" data-key="VOLDOWN" aria-label="Volume down"><img src="/icons/minus.svg" alt=""></button></fieldset>
+          <div class="navigation-cluster">
+        <fieldset class="dpad requires-tv" id="dpad" disabled aria-label="Directional controls" aria-describedby="stick-help">
+          <button class="up key" data-key="UP" aria-label="Up"><img src="/icons/chevron-up.svg" alt=""></button>
+          <button class="left key" data-key="LEFT" aria-label="Left"><img src="/icons/chevron-left.svg" alt=""></button>
+          <button class="select key" data-key="ENTER" aria-label="Select"><span>OK</span><small class="stick-caption" aria-hidden="true">Push to move</small></button>
+          <button class="right key" data-key="RIGHT" aria-label="Right"><img src="/icons/chevron-right.svg" alt=""></button>
+          <button class="down key" data-key="DOWN" aria-label="Down"><img src="/icons/chevron-down.svg" alt=""></button>
+        </fieldset>
+        <span id="stick-help" class="sr-only">Push and hold to keep moving. Release or return to the centre to stop. Tap OK to select. Each arrow also works as an individual button.</span>
+        <button id="touchpad" class="touchpad requires-tv" hidden disabled aria-label="TV touchpad. Swipe to navigate, tap to select. Use Navigation stick mode for individual directions."><img src="/icons/hand.svg" alt=""><strong>Swipe to navigate</strong><span>Tap to select</span></button>
+          </div>
+        </div>
+        <fieldset class="primary-actions row requires-tv" disabled aria-label="Back and Home">
+          <button class="key return-key" data-key="RETURN" aria-label="Back"><img src="/icons/corner-up-left.svg" alt=""><span>Back</span></button>
+          <button class="key home-key" data-key="HOME" aria-label="Home"><img src="/icons/house.svg" alt=""><span>Home</span></button>
+        </fieldset>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="settings-screen" hidden>
+  <section class="setting-section settings-tv-section" aria-label="TV connection">
+    <div class="settings-group">
+      <button id="settings-tv" class="setting-row"><img src="/icons/panels-top-left.svg" alt=""><span><strong id="settings-tv-name">Connect a TV</strong><small id="settings-connection">Not connected</small></span><img src="/icons/chevron-right.svg" alt=""></button>
+      <label class="switch-row" for="auto-reconnect"><span><strong>Reconnect automatically</strong></span><input id="auto-reconnect" type="checkbox" role="switch"></label>
+    </div>
+    <div class="settings-actions"><button id="settings-connect">Connect to TV</button><button id="wake" hidden>Wake TV</button></div>
+    <p id="connection-message" class="help" hidden></p>
+  </section>
+  <section class="setting-section"><h2>Preferences</h2>
+    <div class="settings-group">
+      <div class="setting-inline"><label for="theme">Color scheme</label><span class="theme-choice"><select id="theme"><option value="system">Match device</option><option value="dark">Dark</option><option value="light">Light</option></select><img src="/icons/chevron-down.svg" alt=""></span></div>
+      <label class="switch-row" for="button-sounds"><span><strong>Soft clicks</strong></span><input id="button-sounds" type="checkbox" role="switch"></label>
+      <label id="vibration-setting" class="switch-row" for="button-vibration"><span><strong>Vibration</strong></span><input id="button-vibration" type="checkbox" role="switch"></label>
+    </div>
+    <p id="feedback-help" class="help"></p>
+  </section>
+  <div class="settings-group settings-secondary">
+    <button id="manage-shortcuts" class="setting-row"><img src="/icons/grid-2x2.svg" alt=""><span><strong>App shortcuts</strong></span><img src="/icons/chevron-right.svg" alt=""></button>
+    <button id="subtitle-settings" class="setting-row"><img src="/icons/sliders-horizontal.svg" alt=""><span><strong>Subtitle settings</strong></span><img src="/icons/chevron-right.svg" alt=""></button>
+    <button id="update-notifications" class="setting-row" hidden><img src="/icons/bell.svg" alt=""><span><strong>App updates</strong></span><img src="/icons/chevron-right.svg" alt=""></button>
+    <button id="install-app" class="setting-row"><img src="/icons/external-link.svg" alt=""><span><strong>Install app</strong></span><img src="/icons/chevron-right.svg" alt=""></button>
+    <button id="connection-help" class="setting-row"><img src="/icons/wifi.svg" alt=""><span><strong>Connection help</strong></span><img src="/icons/chevron-right.svg" alt=""></button>
+  </div>
+  <button id="about-remote" class="about-remote">About TV Remote</button>
+</section>
+</main>
+<dialog id="sheet" aria-labelledby="sheet-title">
+ <div class="sheet-panel">
+  <div class="sheet-top"><h2 id="sheet-title" tabindex="-1"></h2><button id="close-sheet" class="icon-button" aria-label="Close sheet"><img src="/icons/x.svg" alt=""></button></div>
+  <div id="discard-prompt" class="notice" hidden><p>Discard your unsaved changes?</p><button id="keep-editing">Keep editing</button><button id="discard-edits" class="danger">Discard</button></div>
+  <p id="sheet-notice" class="sheet-notice" role="status" hidden></p>
+  <div id="movie-library-nav" hidden></div>
+  <div id="sheet-body"></div>
+  <footer id="subtitle-action-footer" class="subtitle-action-footer" hidden></footer>
+  <footer id="movie-browse-footer" class="catalog-search-footer"><button id="catalog-paste" class="catalog-back" type="button">Use a video link</button><small>Data via TMDB</small></footer>
+ </div>
+</dialog>
+<noscript>This remote needs JavaScript to communicate with the helper on your PC.</noscript>
+</body>
+</html>

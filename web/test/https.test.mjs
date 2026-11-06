@@ -1,0 +1,45 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import https from 'node:https';
+import {X509Certificate} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import {Store,createHelper} from '../server.mjs';
+import {loadHTTPS} from '../https-config.mjs';
+test('local HTTPS validates its generated certificate and keeps origin/auth boundaries',{skip:process.platform!=='win32'},async t=>{
+ const directory=fs.mkdtempSync(path.join(os.tmpdir(),'switkobo-https-'));
+ t.after(()=>fs.rmSync(directory,{recursive:true,force:true}));
+ const web=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+ const generated=spawnSync('powershell.exe',['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.join(web,'scripts','https.ps1'),'-DataDirectory',directory,'-Addresses','192.168.0.20'],{windowsHide:true,encoding:'utf8'});
+ assert.equal(generated.status,0,generated.stderr);
+ const config=loadHTTPS(directory),store=new Store(directory);
+ const tv={snapshot:()=>({state:'disconnected'}),disconnect(){}};
+ let live=[];const helper=createHelper({store,tv,port:48766,addresses:[],addressProvider:()=>live,tlsOptions:config.tlsOptions,secureConfig:config});
+ await new Promise(resolve=>helper.server.listen(0,'127.0.0.1',resolve));
+ const port=helper.server.address().port;helper.hosts.add('127.0.0.1:'+port);
+ t.after(()=>new Promise(resolve=>helper.server.close(resolve)));
+ const request=(name,headers={},trust=new X509Certificate(config.certificate).toString())=>new Promise((resolve,reject)=>{
+  const req=https.get({hostname:'127.0.0.1',port,path:name,ca:trust,headers},res=>{
+   let raw='';res.on('data',chunk=>raw+=chunk);res.on('end',()=>resolve({status:res.statusCode,raw,authorized:res.socket?.authorized}));
+  });req.on('error',reject);
+ });
+ assert.equal((await request('/api/state')).status,401);
+ const auth={Authorization:'Bearer '+store.data.accessKey};
+ const reply=await request('/api/state',auth);
+ assert.equal(reply.status,200);assert.equal(JSON.parse(reply.raw).installation.secure,true);
+ assert.equal((await request('/api/state',{...auth,Origin:'http://127.0.0.1:'+port})).status,403);
+ assert.equal((await request('/api/state',{...auth,Origin:'https://127.0.0.1:'+port})).status,200);
+ assert.equal((await request('/api/state',{...auth,Host:'192.168.0.20:48766'})).status,403);
+ live=['192.168.0.20','192.168.0.21'];
+ assert.equal((await request('/api/state',{...auth,Host:'192.168.0.20:48766',Origin:'https://192.168.0.20:48766'})).status,200);
+ assert.equal((await request('/api/state',{...auth,Host:'192.168.0.21:48766'})).status,403,'HTTPS must not accept an address absent from its certificate');
+ const setup=await request('/setup/');assert.equal(setup.status,200);assert.match(setup.raw,/Certificate Trust Settings/);assert.ok(!setup.raw.includes(store.data.accessKey));
+ const checked=await request('/setup/?check=1');assert.equal(checked.status,200);assert.match(checked.raw,/Secure page opened/);assert.ok(!checked.raw.includes(store.data.accessKey));
+ assert.equal((await request('/setup/root.cer')).status,200);
+ const profile=await request('/setup/iphone.mobileconfig');assert.equal(profile.status,200);assert.match(profile.raw,/com.apple.security.root/);assert.ok(!profile.raw.includes(store.data.accessKey));
+ assert.equal((await request('/setup/server.pfx')).status,404);
+ await assert.rejects(request('/api/state',auth,[]));
+});
